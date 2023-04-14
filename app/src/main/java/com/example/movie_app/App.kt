@@ -17,10 +17,7 @@ class App: Application(), Injector{
             .build()
     }
 
-
     override fun createMovieSubComponent(): MovieSubComponent {
         return appComponent.movieSubComponent().create()
     }
-
-
 }
