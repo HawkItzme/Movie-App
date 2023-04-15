@@ -10,7 +10,7 @@ class MovieRepositoryImpl(
     private val movieRemoteDataSource: MovieRemoteDataSource,
     private val movieLocalDataSource: MovieLocalDataSource,
     private val movieCacheDataSource: MovieCacheDataSource
-): MovieRepository {
+) : MovieRepository {
 
     override suspend fun getMovies(): List<Movie>? {
         return getMoviesFromCache()
@@ -24,31 +24,31 @@ class MovieRepositoryImpl(
         return newListOfMovies
     }
 
-    suspend fun getMoviesFromAPI(): List<Movie> {
+    //TODO: added stack trace for all exceptions
+    private suspend fun getMoviesFromAPI(): List<Movie> {
         lateinit var movieList: List<Movie>
         try {
             val response = movieRemoteDataSource.getMovies()
             val body = response.body()
-            if (body != null){
+            if (body != null) {
                 movieList = body.movies
             }
-
-        }catch (exception: java.lang.Exception){
-
+        } catch (exception: Exception) {
+            exception.printStackTrace()
         }
         return movieList
     }
 
-    suspend fun getMoviesFromROOM(): List<Movie>{
+    private suspend fun getMoviesFromROOM(): List<Movie> {
         lateinit var movieList: List<Movie>
         try {
             movieList = movieLocalDataSource.getMoviesFromDB()
-        }catch (exception: Exception){
-
+        } catch (exception: Exception) {
+            exception.printStackTrace()
         }
-        if (movieList.size> 0){
+        if (movieList.isNotEmpty()) {
             return movieList
-        }else{
+        } else {
             movieList = getMoviesFromAPI()
             movieLocalDataSource.saveMoviesToDB(movieList)
         }
@@ -56,17 +56,17 @@ class MovieRepositoryImpl(
     }
 
     private suspend fun getMoviesFromCache(): List<Movie>? {
-        lateinit var movieList : List<Movie>
+        lateinit var movieList: List<Movie>
         try {
             movieList = movieCacheDataSource.getMoviesFromCache()
-        }catch (exception : Exception){
-
+        } catch (exception: Exception) {
+            exception.printStackTrace()
         }
-        if (movieList.size > 0 ){
+        if (movieList.isNotEmpty()) {
             return movieList
-        }else{
-            movieList = getMoviesFromROOM()
+        } else {
             movieCacheDataSource.saveMoviesToCache(movieList)
+            movieList = getMoviesFromROOM()
         }
         return movieList
     }

@@ -1,11 +1,14 @@
 package com.example.movie_app.presentation.fragments
 
 import android.os.Bundle
-import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.movie_app.R
@@ -27,27 +30,24 @@ class PopularMovie : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View{
         // Inflate the layout for this fragment
         // return inflater.inflate(R.layout.fragment_popular_movie, container, false)
         setHasOptionsMenu(true)
-        val binding = FragmentPopularMovieBinding.inflate(inflater,container,false)
-        (requireContext().applicationContext as Injector).createMovieSubComponent().inject(this)
-        movieViewModel = ViewModelProvider(this,factory).get(MyViewModel::class.java)
+        //TODO: Removed val from binding, to stop localizing it to only onCreateView
+        binding = FragmentPopularMovieBinding.inflate(inflater,container,false)
+        (requireContext() as Injector).createMovieSubComponent().inject(this)
+        movieViewModel = ViewModelProvider(this,factory)[MyViewModel::class.java]
         initRecyclerView()
-
-        return  binding.root
-
+        return binding.root
     }
 
     private fun initRecyclerView() {
-        val manager : LinearLayoutManager = LinearLayoutManager(context)
-        //binding.recyclerView.layoutManager = LinearLayoutManager(this)
+        val manager = LinearLayoutManager(requireContext())
         my_adapter = MovieAdapter()
-        //binding.recyclerView.adapter = my_adapter
-        binding.recyclerView.layoutManager = manager
-        binding.recyclerView.hasFixedSize()
-        binding.recyclerView.adapter = my_adapter
+        binding.recyclerViewMov.layoutManager = manager
+        binding.recyclerViewMov.hasFixedSize()
+        binding.recyclerViewMov.adapter = my_adapter
         displayPopularMovies()
     }
 
@@ -55,31 +55,30 @@ class PopularMovie : Fragment() {
         binding.movieProgressBar.visibility = View.VISIBLE
         val responseLiveData = movieViewModel.getMovies()
 
-        responseLiveData.observe(viewLifecycleOwner, Observer{
-            if (it !=null){
+        responseLiveData.observe(viewLifecycleOwner) {
+            if (it != null) {
                 my_adapter.setList(it)
-                Log.d("APIRes", it.toString())
                 my_adapter.notifyDataSetChanged()
                 binding.movieProgressBar.visibility = View.GONE
-            }else{
+            } else {
                 binding.movieProgressBar.visibility = View.GONE
                 Toast.makeText(context, "No Data Available", Toast.LENGTH_LONG).show()
             }
-        })
+        }
     }
 
     public fun updateMovies() {
         binding.movieProgressBar.visibility = View.VISIBLE
         val response = movieViewModel.updateMovies()
-        response.observe(this, Observer {
-            if (it!= null){
+        response.observe(this) {
+            if (it != null) {
                 my_adapter.setList(it)
                 my_adapter.notifyDataSetChanged()
                 binding.movieProgressBar.visibility = View.GONE
-            }else{
+            } else {
                 binding.movieProgressBar.visibility = View.GONE
             }
-        })
+        }
     }
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         val inflater: MenuInflater = inflater

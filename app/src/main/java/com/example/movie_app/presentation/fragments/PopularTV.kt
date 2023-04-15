@@ -30,22 +30,20 @@ class PopularTV : Fragment() {
         // Inflate the layout for this fragment
         //return inflater.inflate(R.layout.fragment_popular_t_v, container, false)
         setHasOptionsMenu(true)
-        val binding = FragmentPopularTVBinding.inflate(inflater,container,false)
-        return  binding.root;
+        //TODO: Removed val from binding, to stop localizing it to only onCreateView
+        binding = FragmentPopularTVBinding.inflate(inflater,container,false)
         (requireContext().applicationContext as Injector).createMovieSubComponent().inject(this)
-        movieViewModel = ViewModelProvider(this,factory)
-            .get(MyViewModel::class.java)
+        movieViewModel = ViewModelProvider(this,factory)[MyViewModel::class.java]
         initRecyclerView()
+        return binding.root
     }
 
     private fun initRecyclerView() {
-        val manager : LinearLayoutManager = LinearLayoutManager(context)
-        //binding.recyclerView.layoutManager = LinearLayoutManager(this)
+        val manager  = LinearLayoutManager(requireContext())
         my_adapter = MovieAdapter()
-        //binding.recyclerView.adapter = my_adapter
-        binding.recyclerView.layoutManager = manager
-        binding.recyclerView.hasFixedSize()
-        binding.recyclerView.adapter = my_adapter
+        binding.recyclerViewTv.layoutManager = manager
+        binding.recyclerViewTv.hasFixedSize()
+        binding.recyclerViewTv.adapter = my_adapter
         displayPopularMovies()
     }
 
@@ -54,33 +52,31 @@ class PopularTV : Fragment() {
         binding.movieProgressBar.visibility = View.VISIBLE
         val responseLiveData = movieViewModel.getMovies()
 
-        responseLiveData.observe(viewLifecycleOwner, Observer{
-
-            if (it !=null){
+        responseLiveData.observe(viewLifecycleOwner) {
+            if (it != null) {
                 my_adapter.setList(it)
                 my_adapter.notifyDataSetChanged()
                 binding.movieProgressBar.visibility = View.GONE
-            }else{
+            } else {
                 binding.movieProgressBar.visibility = View.GONE
                 Toast.makeText(context, "No Data Available", Toast.LENGTH_LONG).show()
             }
-        })
+        }
     }
 
     public fun updateMovies() {
         binding.movieProgressBar.visibility = View.VISIBLE
         val response = movieViewModel.updateMovies()
-        response.observe(this, Observer {
-
-            if (it!= null){
+        response.observe(this) {
+            if (it != null) {
                 my_adapter.setList(it)
                 my_adapter.notifyDataSetChanged()
                 binding.movieProgressBar.visibility = View.GONE
-            }else{
+            } else {
                 binding.movieProgressBar.visibility = View.GONE
 
             }
-        })
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
